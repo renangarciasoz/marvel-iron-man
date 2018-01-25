@@ -3,39 +3,45 @@ import '../../static/Comics.css';
 import Comic from './Components/Comic';
 import axios from 'axios';
 import InfiniteScroll from 'react-infinite-scroller';
-
-const charId = 1009368;
-const keyAPI = 'ec731b4e6cd615c2b1a7266df12dcf8e';
-const urlAPI = 'https://gateway.marvel.com:443/v1/public/characters';
-const limit = 10;
+import CryptoJS from 'crypto-js'
 
 class Comics extends Component {
-
-
-    constructor(props) {
-        super(props)
-
-        this.state = {
+    
+    constructor(props, context){
+        super(props, context);
+            this.state = {
             comics: [],
-            hasMoreItems: true,
-            comicsOffset: 0,
-            comicsTotal: 0,
-            modalIsOpen: false,
+            offset: 0,
+            total: 0,
+            haveMoreComics: true,
             comicData: null
         }
-    }
 
+        this.getComicsWebApi = this.getComicsWebApi.bind(this);
+    }
+    
+    // Funções a serem executadas quando o component é montado
     componentDidMount() {
-        this.getComics();
+        this.getComicsWebApi();
     }
 
-    getComics() {
-        axios.get(`${urlAPI}/${charId}/comics`, {
-            headers: { 'Accept': '*/*' },
+    // Faz requisição GET na API da Marvel
+    getComicsWebApi() {
+
+        // Variáveis para fazer a requisição
+        const PRIV_KEY = 'e2199597a3f9599f63758a996587afe0ddcff1d8';
+        const PUBLIC_KEY = 'ca35191c98a0ec8a129d625cdaa56ef2';
+        const ts = new Date().getTime();
+        const hash = CryptoJS.MD5(ts + PRIV_KEY + PUBLIC_KEY).toString();
+        const charId = 1009368; //ID do Homem de Ferro
+        const url = 'https://gateway.marvel.com:443/v1/public/characters'; // URL da API
+        const limit = 21; // Limite de items por requisição 
+
+        axios.get(`${url}/${charId}/comics`, {
             params: {
-                apikey: keyAPI,
-                ts: '1511796807392',
-                hash: '3a6279c7acc3cd78426149de1a162903',
+                ts: ts,
+                apikey: PUBLIC_KEY,
+                hash: hash,
                 format: 'comic',
                 formatType: 'comic',
                 orderBy: '-onsaleDate',
@@ -44,44 +50,21 @@ class Comics extends Component {
                 offset: 0
             }
         }).then(response => {
-            let comics = this.state.comics;
+            if (this.state.offset <= this.state.total) {
+                const comics = this.state.comics;
+                const offset = this.state.offset + limit;
+                
+                response.data.data.results.map((item) => {
+                    comics.push(item);
+                    return true;
+                });
 
-            response.data.data.results.map((item) => {
-                comics.push(item);
-                return true;
-            });
-
-            //setting up next API request offset
-            let newOffset = this.state.comicsOffset + limit;
-            this.setState({ comicsOffset: newOffset });
-
-            //setting up comics total
-            if (this.state.comicsTotal === 0) {
-                this.setState({ comicsTotal: response.data.data.total });
+                this.setState({ ...this.state, offset: offset , total: response.data.data.total});
+            } else {
+                this.setState({ ...this.state, haveMoreComics: false});
             }
-
-            //stopping requests
-            if (this.state.comicsOffset >= this.state.comicsTotal) {
-                this.setState({ hasMoreItems: false });
-            }
-
         }).catch(function (error) {
             console.log(error);
-        });
-    }
-
-    renderComics() {
-        return this.state.comics.map((item, index) => {
-            return <div key={index} onClick={() => this.openModal(item)}>
-                <Comic
-                    key={index}
-                    coverUrl={item.thumbnail.path}
-                    coverExtension={item.thumbnail.extension}
-                    title={item.title}
-                    // date={comicDate}
-                    description={item.description}
-                />
-            </div>
         });
     }
 
@@ -91,11 +74,13 @@ class Comics extends Component {
                 <InfiniteScroll
                     pageStart={0}
                     initialLoad
-                    loadMore={this.getComics}
-                    hasMore={this.state.hasMoreItems}
+                    loadMore={this.getComicsWebApi}
+                    hasMore={this.state.haveMoreComics}
                     loader={<div key={1} className="loader">Loading ...</div>}
                 >
-                    {this.renderComics()}
+                    {this.state.comics.map(function (item, i) {
+                        return <Comic key={i} cover={{url: item.thumbnail.path, extension: item.thumbnail.extension}} title={item.title} date={item.dates[1].date} description={item.description}/>
+                    })}
                 </InfiniteScroll>
             </div>
         );

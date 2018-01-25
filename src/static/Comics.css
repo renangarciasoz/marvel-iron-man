@@ -1,5 +1,9 @@
 .comics-container {
     padding: 30px 30px 30px 0px;
+}
+
+.comics-container>div {
+    width: 100%;
     display: flex;
     justify-content: center;
     flex-direction: row;

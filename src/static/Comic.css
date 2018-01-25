@@ -5,3 +5,13 @@
     margin-bottom: 30px;
     border: 1px solid white;
 }
+
+.comic .cover{
+    width: 100%;
+    height: 100%;
+    background-size: 100% auto;
+}
+
+.comic .details {
+    opacity: 0;
+}
