@@ -19,14 +19,10 @@ class Comics extends Component {
 
         this.getComicsWebApi = this.getComicsWebApi.bind(this);
     }
-    
-    // Funções a serem executadas quando o component é montado
-    componentDidMount() {
-        this.getComicsWebApi();
-    }
 
     // Faz requisição GET na API da Marvel
     getComicsWebApi() {
+        let self = this; //unbinding this...
 
         // Variáveis para fazer a requisição
         const PRIV_KEY = 'e2199597a3f9599f63758a996587afe0ddcff1d8';
@@ -47,15 +43,17 @@ class Comics extends Component {
                 orderBy: '-onsaleDate',
                 noVariants: true,
                 limit: limit,
-                offset: 0
+                offset: self.state.offset
             }
+            
         }).then(response => {
             if (this.state.offset <= this.state.total) {
                 const comics = this.state.comics;
                 const offset = this.state.offset + limit;
-                
+
                 response.data.data.results.map((item) => {
                     comics.push(item);
+                    
                     return true;
                 });
 

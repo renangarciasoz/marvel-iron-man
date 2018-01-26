@@ -4,6 +4,11 @@
     margin-left: 30px;
     margin-bottom: 30px;
     border: 1px solid white;
+    cursor: pointer;
+}
+
+.comic:hover .details{
+    opacity: 1;
 }
 
 .comic .cover{
@@ -13,5 +18,34 @@
 }
 
 .comic .details {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
     opacity: 0;
+    color: white;
+    width: 150px;
+    height: 200px;
+    background: rgba(0,0,0, 0.7);
+    transform: translateY(-100%);
+    transition: 0.5s ease;
+}
+
+.comic .details .title {
+    text-align: center;
+    font-size: 16px;
+    padding: 5px;
+}
+
+.comic .details .description {
+    max-height: 100px;
+    font-size: 14px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    padding: 0 5px;
+}
+
+.comic .details .date {
+    font-size: 12px;
+    white-space: nowrap;
 }
